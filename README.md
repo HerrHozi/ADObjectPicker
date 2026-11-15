@@ -1,155 +1,151 @@
+﻿# Select-ADObject
 
-# Select-ADObject
+An interactive Active Directory object picker for PowerShell with GUI-based forest browsing, Tier 0 highlighting and disabled-account markers.
 
-Interactive Active Directory object picker with GUI-based forest browsing and Tier 0 highlighting.
+<!-- Add a screenshot here, e.g. drag an image into the GitHub editor and paste the generated <img> tag -->
 
-<img width="527" height="546" alt="image" src="https://github.com/user-attachments/assets/5c85d3a8-5613-4c81-ae12-2c29e853337f" />
-
-
-
-
-> **Note**  
-> The script parameters are specifically tailored for my AS2Go PowerShell module, and the icons are optimized for PowerShell 7.
-
----
+> **Note**
+> The parameters are tailored to the author's AS2Go PowerShell module, and the icons are optimized for PowerShell 7.
 
 ## Overview
 
-`Select-ADObject` is a PowerShell function that provides a graphical interface for browsing and selecting Active Directory objects within a forest.
+`Select-ADObject` is a PowerShell function that displays a Windows Forms dialog for browsing and selecting Active Directory objects in a forest. Child objects are loaded on demand when a node is expanded, so large forests stay responsive.
 
-It enables administrators to:
+- Browse the forest hierarchy across **multiple domains**
+- Select **OUs, containers, users, groups, computers, GPOs** and **domains**
+- Restrict the view to the **local domain** only
+- **Highlight Tier 0 objects** with a red dot (regex based, customizable)
+- Mark **disabled user and computer accounts** with a red cross
+- Enable or disable **user accounts** from the context menu
+- **Block the selection of OUs/containers** while still browsing through them (e.g. to pick only users)
+- Optionally **create new OUs** from a context menu
+- Optionally show **linked GPOs** below each domain, OU or container
+- Returns the **distinguished name (DN)** of the selected object
 
-- Browse multiple domains in a forest
-- Select OUs, users, groups, computers, or domains
-- Restrict scope to the local domain
-- Highlight Tier 0 objects
-- Control selection scope via switches
-- Return the distinguished name (DN) of the selected object
+### Icon legend
 
-The function is designed for administrative tooling, lab environments, and security-focused workflows.
+| Marker | Meaning |
+|--------|---------|
+| Red dot (top right) | Tier 0 object (`-MarkTier0`) |
+| Red cross (bottom right) | Disabled user or computer account |
 
----
+Both markers can appear on the same icon.
 
 ## Requirements
 
-- Windows environment (GUI required)
-- PowerShell 5.1+ or PowerShell 7 (Windows)
-- Active Directory module
-- Access to query AD forest structure
-- System.Windows.Forms
-- System.DirectoryServices
-
----
+- Windows with a graphical environment
+- PowerShell 5.1 or PowerShell 7 (Windows)
+- Active Directory module for OU creation and user account actions
+- Read access to the forest
+- `System.Windows.Forms`, `System.Drawing` and `System.DirectoryServices` (loaded by the function)
 
 ## Installation
 
-Copy the function into:
-
-- A PowerShell module
-- Your profile
-- A script library
+Copy the function into a module, your profile or a script library, or dot-source the file:
 
 ```powershell
 . .\Select-ADObject.ps1
 ```
 
----
-
 ## Usage
 
-### Example #1
-
-``` powershell
+```powershell
+# Browse the forest and select an OU, container or other object
 Select-ADObject
+
+# Pick a break glass account, highlight Tier 0 objects
+Select-ADObject -MarkTier0 -IncludeUsers -Title "Select Break Glass Account"
+
+# Only users can be selected, OUs are browsable but not selectable
+Select-ADObject -IncludeUsers -BlockOUSelection -Title "Select User"
+
+# Local domain only, users and groups included
+Select-ADObject -LocalDomainOnly -IncludeUsers -IncludeGroups
+
+# Select a domain
+Select-ADObject -DomainSelectionOnly
+
+# Allow creating new OUs via right click > New > Organizational Unit
+Select-ADObject -AddOU -Title "Select Target OU"
 ```
 
-### Example #2
+The result is the DN of the selection, or `$null` if the dialog was cancelled:
 
 ```powershell
-Select-ADObject -MarkTier0 -IncludeUsers -Title "Select Break Glass Account"
+$dn = Select-ADObject -IncludeUsers -BlockOUSelection
+if ($dn) { Get-ADUser -Identity $dn }
 ```
 
----
+### Enable or disable a user account
+
+Run `Select-ADObject -IncludeUsers`, expand the user's container, and right-click the user. Choose **Disable Account** for an enabled account or **Enable Account** for a disabled account. The action runs immediately when selected. After a successful change, the red cross on the user icon updates.
 
 ## Parameters
 
 <details>
-<summary><strong>Selection Scope</strong></summary>
-
-<br>
+<summary><b>Selection Scope</b></summary>
 
 | Parameter | Type | Default | Description |
-|------------|--------|----------|-------------|
-| `Title` | String | `"Select AD Object"` | Title displayed in the selection dialog window. |
-| `LocalDomainOnly` | Switch | `False` | Displays only the current domain and its objects. |
-| `AllowDomainSwitch` | Switch | `False` | Allows domain objects themselves to be selected. |
-| `DomainSelectionOnly` | Switch | `False` | Restricts selection strictly to domain objects. |
+|-----------|------|---------|-------------|
+| `Title` | String | `Select AD Object` | Text shown in the dialog title bar. |
+| `LocalDomainOnly` | Switch | False | Show only the current domain instead of all domains in the forest. |
+| `DomainSelectionOnly` | Switch | False | Only domains can be selected. The tree is not expanded below the domain level. |
+| `BlockOUSelection` | Switch | False | OUs and containers can be browsed but not selected (OK stays disabled). Use together with `-IncludeUsers`, `-IncludeGroups`, `-IncludeComputers` or `-IncludeGPOs`. |
+| `AddOU` | Switch | False | Adds a context menu to create an organizational unit below a domain, OU or container. |
+| `ShowAdvanced` | Switch | False | Also show objects flagged with `showInAdvancedViewOnly`. |
 
 </details>
-
----
 
 <details>
-<summary><strong>Object Types</strong></summary>
-
-<br>
+<summary><b>Object Types</b></summary>
 
 | Parameter | Type | Default | Description |
-|------------|--------|----------|-------------|
-| `IncludeUsers` | Switch | `False` | Includes user objects in the tree view. |
-| `IncludeGroups` | Switch | `False` | Includes group objects in the tree view. |
-| `IncludeComputers` | Switch | `False` | Includes computer objects in the tree view. |
+|-----------|------|---------|-------------|
+| `IncludeUsers` | Switch | False | Include user objects in the tree. Disabled users are marked with a red cross. |
+| `IncludeGroups` | Switch | False | Include group objects in the tree. |
+| `IncludeComputers` | Switch | False | Include computer objects in the tree. Disabled computers are marked with a red cross. |
+| `IncludeGPOs` | Switch | False | Include GPO objects (`groupPolicyContainer`) in the tree. |
+| `IncludeLinkedGPOs` | Switch | False | Show GPOs linked to a domain, OU or container as child entries. |
 
 </details>
-
----
 
 <details>
-<summary><strong>Security / Tier 0 Handling</strong></summary>
-
-<br>
+<summary><b>Security / Tier 0 Handling</b></summary>
 
 | Parameter | Type | Default | Description |
-|------------|--------|----------|-------------|
-| `MarkTier0` | Switch | `False` | Highlights detected Tier 0 objects with a red indicator. |
-| `Tier0Regex` | String | Default Tier 0 pattern | Regular expression used to identify Tier 0 objects. |
-
-**Default Tier 0 Pattern:**
-
-```regex
-(?i)(^CN=Administrator,|^OU=Domain Controllers,|^OU=Tier\s*0|^OU=T0)
-```
+|-----------|------|---------|-------------|
+| `MarkTier0` | Switch | False | Marks Tier 0 objects with a red dot on their icon. |
+| `Tier0Regex` | String | `(?i)(^CN=Administrator,\|^OU=Domain Controllers,\|^OU=Tier\s*0\|^OU=T0)` | Regular expression matched against the DN to identify Tier 0 objects. |
 
 </details>
-
----
 
 ## Output
 
 | Type | Description |
-|------|------------|
-| `System.String` | Returns the Distinguished Name (DN) of the selected object. Returns `$null` if cancelled. |
+|------|-------------|
+| `System.String` | Distinguished name of the selected object, or `$null` if cancelled. |
 
----
+## Selection rules
+
+- The forest node and domain nodes are not selectable (except domains with `-DomainSelectionOnly`).
+- With `-BlockOUSelection`, objects of class `organizationalUnit`, `container` and `builtinDomain` are not selectable.
 
 ## Security Considerations
 
-- Requires directory read permissions
-- Tier 0 detection is regex-based (customizable)
-- Does not modify AD
-- No credentials stored
-- Intended for administrative usage
-
----
+- Browsing requires directory read permissions. Creating OUs and changing user account status require the corresponding write permissions in the target domain.
+- Tier 0 detection is regex based and can be customized with `-Tier0Regex`
+- Selecting an OU creation or user account action changes Active Directory.
+- Stores no credentials
+- Intended for administrative use
 
 ## Limitations
 
-- Requires GUI environment
-- Not compatible with headless execution
-- Performance depends on forest size
-
----
+- Requires a GUI, not headless-compatible
+- Performance depends on the size of the forest and the number of child objects per container
+- The disabled marker is based on `userAccountControl` and therefore applies to users and computers only
 
 ## License
 
-Internal / Custom usage unless otherwise specified.
+This project is licensed under the [MIT License](LICENSE).
+
+Copyright (c) 2026 Holger Zimmermann
