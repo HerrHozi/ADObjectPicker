@@ -2,7 +2,7 @@
 
 An interactive Active Directory object picker for PowerShell with GUI-based forest browsing, Tier 0 highlighting and disabled-account markers.
 
-<!-- Add a screenshot here, e.g. drag an image into the GitHub editor and paste the generated <img> tag -->
+<img width="527" height="546" alt="image" src="https://github.com/user-attachments/assets/5c85d3a8-5613-4c81-ae12-2c29e853337f" />
 
 > **Note**
 > The parameters are tailored to the author's AS2Go PowerShell module, and the icons are optimized for PowerShell 7.
