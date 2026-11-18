@@ -1,6 +1,6 @@
 @{
     RootModule           = 'ADObjectPicker.psm1'
-    ModuleVersion        = '2026.11.18.801'
+    ModuleVersion        = '2026.11.18.804'
     GUID                 = 'ce4ff236-1d92-4cb6-b922-a2641e35bab5'
     Author               = 'Holger Zimmermann | zimmermann.holger@live.de'
     CompanyName          = 'Community'

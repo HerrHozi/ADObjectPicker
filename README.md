@@ -6,7 +6,7 @@
 
 ```Text
 Author:          Holger Zimmermann | zimmermann.holger@live.de
-Current Version: 2026.11.18.801
+Current Version: 2026.11.18.804
 Last Update:     2026-11-18
 ```
 
