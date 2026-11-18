@@ -1,4 +1,14 @@
-﻿# Select-ADObject
+# ADObjectPicker
+
+![PowerShell](https://img.shields.io/badge/PowerShell-5.1%20%7C%207%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Module Type](https://img.shields.io/badge/type-PowerShell%20Module-orange)
+
+```Text
+Author:          Holger Zimmermann | zimmermann.holger@live.de
+Current Version: 2026.11.18.801
+Last Update:     2026-11-18
+```
 
 An interactive Active Directory object picker for PowerShell with GUI-based forest browsing, Tier 0 highlighting and disabled-account markers.
 
@@ -31,6 +41,22 @@ An interactive Active Directory object picker for PowerShell with GUI-based fore
 
 Both markers can appear on the same icon.
 
+## Project Information
+
+- Author: Holger Zimmermann
+- Module: `ADObjectPicker`
+- Public command: `Select-ADObject`
+- Project: [Select-ADObject on GitHub](https://github.com/HerrHozi/Select-ADObject)
+- License: MIT
+
+## Module Structure
+
+- `ADObjectPicker.psd1`: module metadata and public exports
+- `ADObjectPicker.psm1`: loads private helpers and public commands
+- `Public/`: exported PowerShell commands
+- `Private/`: internal helper functions
+- `ChangeLog.md`: local version history
+
 ## Requirements
 
 - Windows with a graphical environment
@@ -41,10 +67,10 @@ Both markers can appear on the same icon.
 
 ## Installation
 
-Copy the function into a module, your profile or a script library, or dot-source the file:
+From the Dev folder, import the module manifest:
 
 ```powershell
-. .\Select-ADObject.ps1
+Import-Module .\ADObjectPicker.psd1
 ```
 
 ## Usage
