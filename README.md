@@ -1,25 +1,27 @@
 # ADObjectPicker
 
-![PowerShell](https://img.shields.io/badge/PowerShell-5.1%20%7C%207%2B-blue)
+![PowerShell](https://img.shields.io/badge/PowerShell-5.1%20compatible%20%7C%207.4%20recommended-blue)
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/v/ADObjectPicker)](https://www.powershellgallery.com/packages/ADObjectPicker)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Module Type](https://img.shields.io/badge/type-PowerShell%20Module-orange)
+![PowerShellGallery](https://img.shields.io/powershellgallery/v/ADObjectPicker)
+![Maintenance](https://img.shields.io/badge/status-active-brightgreen)
 
 ```Text
 Author:          Holger Zimmermann | zimmermann.holger@live.de
-Current Version: 2026.11.18.804
+Current Version: 2026.11.18.817
 Last Update:     2026-11-18
 ```
 
-An interactive Active Directory object picker for PowerShell with GUI-based forest browsing, Tier 0 highlighting and disabled-account markers.
+**ADObjectPicker** is a PowerShell module for browsing Active Directory forests and selecting objects through a graphical Windows Forms dialog. Its exported command, `Select-ADObject`, returns the distinguished name of the selected object for use in your scripts.
+
+The module is available from the [PowerShell Gallery](https://www.powershellgallery.com/packages/ADObjectPicker). It is compatible with **Windows PowerShell 5.1**; **PowerShell 7.4 on Windows is recommended**.
 
 <img width="527" height="546" alt="image" src="https://github.com/user-attachments/assets/5c85d3a8-5613-4c81-ae12-2c29e853337f" />
 
-> **Note**
-> The parameters are tailored to the author's AS2Go PowerShell module, and the icons are optimized for PowerShell 7.
-
 ## Overview
 
-`Select-ADObject` is a PowerShell function that displays a Windows Forms dialog for browsing and selecting Active Directory objects in a forest. Child objects are loaded on demand when a node is expanded, so large forests stay responsive.
+ADObjectPicker provides the `Select-ADObject` command to browse and select Active Directory objects in a forest. Child objects are loaded on demand when a node is expanded, so large forests stay responsive.
 
 - Browse the forest hierarchy across **multiple domains**
 - Select **OUs, containers, users, groups, computers, GPOs** and **domains**
@@ -46,7 +48,8 @@ Both markers can appear on the same icon.
 - Author: Holger Zimmermann
 - Module: `ADObjectPicker`
 - Public command: `Select-ADObject`
-- Project: [Select-ADObject on GitHub](https://github.com/HerrHozi/Select-ADObject)
+- Project: [ADObjectPicker on GitHub](https://github.com/HerrHozi/ADObjectPicker)
+- Package: [ADObjectPicker on the PowerShell Gallery](https://www.powershellgallery.com/packages/ADObjectPicker)
 - License: MIT
 
 ## Module Structure
@@ -60,17 +63,47 @@ Both markers can appear on the same icon.
 ## Requirements
 
 - Windows with a graphical environment
-- PowerShell 5.1 or PowerShell 7 (Windows)
-- Active Directory module for OU creation and user account actions
+- Windows PowerShell 5.1 (compatible) or PowerShell 7.4 on Windows (recommended)
+- The ActiveDirectory module (RSAT) is required only for optional OU creation and user account enable/disable actions; browsing uses System.DirectoryServices and ADSI
 - Read access to the forest
 - `System.Windows.Forms`, `System.Drawing` and `System.DirectoryServices` (loaded by the function)
 
 ## Installation
 
-From the Dev folder, import the module manifest:
+### Install from the PowerShell Gallery
+
+Install the module for your current Windows user:
 
 ```powershell
-Import-Module .\ADObjectPicker.psd1
+Install-Module -Name ADObjectPicker -Repository PSGallery -Scope CurrentUser
+Import-Module -Name ADObjectPicker
+```
+
+### Import from a local checkout
+
+From the folder containing `ADObjectPicker.psd1` (the Dev folder in this project layout):
+
+```powershell
+Import-Module .\ADObjectPicker.psd1 -Force
+```
+
+### Update a Gallery installation
+
+```powershell
+Update-Module -Name ADObjectPicker
+```
+
+## Quick Start
+
+```powershell
+Import-Module -Name ADObjectPicker
+
+$SelectedDN = Select-ADObject -IncludeUsers -BlockOUSelection -Title 'Select a user'
+if ($SelectedDN) {
+    Write-Output $SelectedDN
+}
+
+Get-Help Select-ADObject -Full
 ```
 
 ## Usage
