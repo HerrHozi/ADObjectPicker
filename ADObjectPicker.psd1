@@ -1,6 +1,6 @@
 @{
     RootModule           = 'ADObjectPicker.psm1'
-    ModuleVersion        = '2026.11.18.817'
+    ModuleVersion        = '2026.11.19.1371'
     GUID                 = 'ce4ff236-1d92-4cb6-b922-a2641e35bab5'
     Author               = 'Holger Zimmermann | zimmermann.holger@live.de'
     CompanyName          = 'Community'
@@ -16,7 +16,7 @@
 
     PrivateData = @{
         PSData = @{
-            LastUpdate = '2026-11-18'
+            LastUpdate = '2026-11-19'
             Tags         = @('ActiveDirectory', 'LDAP', 'Windows', 'WindowsForms', 'GUI', 'GroupPolicy', 'Tier0', 'PSEdition_Desktop', 'PSEdition_Core')
             ProjectUri   = 'https://github.com/HerrHozi/Select-ADObject'
             LicenseUri   = 'https://github.com/HerrHozi/Select-ADObject/blob/main/LICENSE'

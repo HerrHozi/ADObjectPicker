@@ -1,7 +1,6 @@
 # ADObjectPicker
 
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1%20compatible%20%7C%207.4%20recommended-blue)
-[![PowerShell Gallery](https://img.shields.io/powershellgallery/v/ADObjectPicker)](https://www.powershellgallery.com/packages/ADObjectPicker)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Module Type](https://img.shields.io/badge/type-PowerShell%20Module-orange)
 ![PowerShellGallery](https://img.shields.io/powershellgallery/v/ADObjectPicker)
@@ -9,15 +8,18 @@
 
 ```Text
 Author:          Holger Zimmermann | zimmermann.holger@live.de
-Current Version: 2026.11.18.817
-Last Update:     2026-11-18
+Current Version: 2026.11.19.1371
+Last Update:     2026-11-19
 ```
 
 **ADObjectPicker** is a PowerShell module for browsing Active Directory forests and selecting objects through a graphical Windows Forms dialog. Its exported command, `Select-ADObject`, returns the distinguished name of the selected object for use in your scripts.
 
+I originally developed `Select-ADObject` for my AS2Go (Attack Scenario to Go) PowerShell module. Since it can also be useful in other scripts and administrative workflows, I wanted to make it available to everyone as the standalone ADObjectPicker module. Feel free to use it in your own projects! :-)
+
 The module is available from the [PowerShell Gallery](https://www.powershellgallery.com/packages/ADObjectPicker). It is compatible with **Windows PowerShell 5.1**; **PowerShell 7.4 on Windows is recommended**.
 
-<img width="527" height="546" alt="image" src="https://github.com/user-attachments/assets/5c85d3a8-5613-4c81-ae12-2c29e853337f" />
+
+<img width="520" height="714" alt="image" src="./Assets/SelectADObject.png" />
 
 ## Overview
 
@@ -29,6 +31,7 @@ ADObjectPicker provides the `Select-ADObject` command to browse and select Activ
 - **Highlight Tier 0 objects** with a red dot (regex based, customizable)
 - Mark **disabled user and computer accounts** with a red cross
 - Enable or disable **user accounts** from the context menu
+- **Reset user passwords** from the context menu, optionally forcing a change at next logon
 - **Block the selection of OUs/containers** while still browsing through them (e.g. to pick only users)
 - Optionally **create new OUs** from a context menu
 - Optionally show **linked GPOs** below each domain, OU or container
@@ -64,7 +67,7 @@ Both markers can appear on the same icon.
 
 - Windows with a graphical environment
 - Windows PowerShell 5.1 (compatible) or PowerShell 7.4 on Windows (recommended)
-- The ActiveDirectory module (RSAT) is required only for optional OU creation and user account enable/disable actions; browsing uses System.DirectoryServices and ADSI
+- **No ActiveDirectory module (RSAT) required**: browsing, OU creation, account enable/disable and password reset all use System.DirectoryServices and ADSI
 - Read access to the forest
 - `System.Windows.Forms`, `System.Drawing` and `System.DirectoryServices` (loaded by the function)
 
@@ -135,9 +138,25 @@ $dn = Select-ADObject -IncludeUsers -BlockOUSelection
 if ($dn) { Get-ADUser -Identity $dn }
 ```
 
+### Use a specific domain controller
+
+```powershell
+Select-ADObject -DomainController 'dc01.contoso.com' -LocalDomainOnly -IncludeUsers
+```
+
+The supplied DC determines the forest and is used for browsing and changes in its own domain.
+Other domains in that forest use automatic controller selection. `-LocalDomainOnly` restricts
+selection to the supplied DC's domain. Without `-DomainController`, automatic discovery is unchanged.
+An unreachable or invalid controller causes an error instead of silently using another controller.
+The current Windows credentials are used; this parameter does not supply alternate credentials.
+
 ### Enable or disable a user account
 
 Run `Select-ADObject -IncludeUsers`, expand the user's container, and right-click the user. Choose **Disable Account** for an enabled account or **Enable Account** for a disabled account. The action runs immediately when selected. After a successful change, the red cross on the user icon updates.
+
+### Reset a user's password
+
+Run `Select-ADObject -IncludeUsers`, expand the user's container, right-click the user and choose **Reset Password...**. Enter the new password twice and optionally tick **User must change password at next logon**. The reset runs immediately after confirming and uses the ADSI `SetPassword` method, so no ActiveDirectory module is needed. The new password must satisfy the domain password policy; otherwise the error returned by the domain controller is shown. The password is never stored or logged.
 
 ## Parameters
 
@@ -147,7 +166,8 @@ Run `Select-ADObject -IncludeUsers`, expand the user's container, and right-clic
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `Title` | String | `Select AD Object` | Text shown in the dialog title bar. |
-| `LocalDomainOnly` | Switch | False | Show only the current domain instead of all domains in the forest. |
+| `DomainController` | String | Automatic | DNS name of the DC used to discover the forest and access its own domain. Other domains use automatic controller selection. |
+| `LocalDomainOnly` | Switch | False | Show only the current domain, or the supplied controller's domain when DomainController is set. |
 | `DomainSelectionOnly` | Switch | False | Only domains can be selected. The tree is not expanded below the domain level. |
 | `BlockOUSelection` | Switch | False | OUs and containers can be browsed but not selected (OK stays disabled). Use together with `-IncludeUsers`, `-IncludeGroups`, `-IncludeComputers` or `-IncludeGPOs`. |
 | `AddOU` | Switch | False | Adds a context menu to create an organizational unit below a domain, OU or container. |
@@ -191,9 +211,9 @@ Run `Select-ADObject -IncludeUsers`, expand the user's container, and right-clic
 
 ## Security Considerations
 
-- Browsing requires directory read permissions. Creating OUs and changing user account status require the corresponding write permissions in the target domain.
+- Browsing requires directory read permissions. Creating OUs, changing user account status and resetting passwords require the corresponding write permissions (e.g. *Reset Password*) in the target domain. For password changes, use a secure LDAP connection where your environment demands it.
 - Tier 0 detection is regex based and can be customized with `-Tier0Regex`
-- Selecting an OU creation or user account action changes Active Directory.
+- Selecting an OU creation, user account or password reset action changes Active Directory.
 - Stores no credentials
 - Intended for administrative use
 
